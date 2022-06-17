@@ -2,7 +2,7 @@ version: '3'
 
 services:
   go-wecomchan:
-    image: docker.io/aozakiaoko/go-wecomchan:latest
+    image: sola97/wecomchan:latest
     environment:
       - SENDKEY=发送时用来验证的key
       - WECOM_CID=企业微信公司ID
