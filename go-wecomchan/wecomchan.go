@@ -5,16 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"io/ioutil"
 	"log"
 	"math"
+	"mime"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"reflect"
+	"strings"
 	"time"
-
-	"github.com/go-redis/redis/v8"
 )
 
 /*-------------------------------  环境变量配置 begin  -------------------------------*/
@@ -231,6 +232,32 @@ func InitJsonData(msgType string) JsonData {
 		DuplicateCheckInterval: 600,
 	}
 }
+func HasContentType(r *http.Request, mimetype string) bool {
+	contentType := r.Header.Get("Content-type")
+	if contentType == "" {
+		return mimetype == "application/octet-stream"
+	}
+
+	for _, v := range strings.Split(contentType, ",") {
+		t, _, err := mime.ParseMediaType(v)
+		if err != nil {
+			break
+		}
+		if t == mimetype {
+			return true
+		}
+	}
+	return false
+}
+
+const (
+	ContentTypeBinary   = "application/octet-stream"
+	ContentTypeForm     = "application/x-www-form-urlencoded"
+	ContentTypeFormData = "multipart/form-data"
+	ContentTypeJSON     = "application/json"
+	ContentTypeHTML     = "text/html; charset=utf-8"
+	ContentTypeText     = "text/plain; charset=utf-8"
+)
 
 // 主函数入口
 func main() {
@@ -242,19 +269,38 @@ func main() {
 		// 默认token有效
 		tokenValid := true
 
-		_ = req.ParseForm()
-		sendkey := req.FormValue("sendkey")
+		var msgContent string
+		var msgType string
+		var sendkey string
+		if req.Method == http.MethodGet {
+			msgContent = req.URL.Query().Get("msg")
+			msgType = req.URL.Query().Get("msg_type")
+			sendkey = req.URL.Query().Get("sendkey")
+			//GET参数解析
+		} else if req.Method == http.MethodPost {
+			//application/json 或者formData
+			if HasContentType(req, ContentTypeJSON) {
+				body, _ := ioutil.ReadAll(req.Body)
+				jsonBody := ParseJson(string(body))
+				msgContent = jsonBody["msg"].(string)
+				msgType = jsonBody["msg_type"].(string)
+				sendkey = jsonBody["sendkey"].(string)
+			}
+			if HasContentType(req, ContentTypeFormData) {
+				_ = req.ParseMultipartForm(100 * 1024 * 1024 * 8)
+				msgContent = req.FormValue("msg")
+				msgType = req.FormValue("msg_type")
+				sendkey = req.FormValue("sendkey")
+			}
+		}
+
 		if sendkey != Sendkey {
 			log.Panicln("sendkey 错误，请检查")
 		}
-		msgContent := req.FormValue("msg")
-		msgType := req.FormValue("msg_type")
-		log.Println("mes_type=", msgType)
 		// 默认mediaId为空
 		mediaId := ""
-		if msgType != "image" {
-			log.Println("消息类型不是图片")
-		} else {
+		if msgType == "image" {
+			log.Println("消息是图片")
 			// token有效则跳出循环继续执行，否则重试3次
 			for i := 0; i <= 3; i++ {
 				var errcode float64
