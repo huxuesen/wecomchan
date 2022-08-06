@@ -330,4 +330,3 @@ namespace WeCom.Demo
 发送图片、卡片、文件或 Markdown 消息的高级用法见 [企业微信API](https://work.weixin.qq.com/api/doc/90000/90135/90236)。
 
 
-
