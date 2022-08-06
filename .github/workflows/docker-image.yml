@@ -32,4 +32,4 @@ jobs:
         with:
           context: ./go-wecomchan
           push: true
-          tags: sola97/wecomchan:latest
+          tags: huxuesen/wecomchan:latest
