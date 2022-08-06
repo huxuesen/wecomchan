@@ -2,7 +2,7 @@ version: '3'
 
 services:
   go-wecomchan:
-    image: sola97/wecomchan:latest
+    image: huxuesen/wecomchan:latest
     environment:
       - SENDKEY=发送时用来验证的key
       - WECOM_CID=企业微信公司ID
@@ -20,7 +20,7 @@ services:
       - redis
 
   redis:
-    image: docker.io/bitnami/redis:6.2
+    image: docker.io/bitnami/redis:7.0
     environment:
       - REDIS_PASSWORD=redis的连接密码
       - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
