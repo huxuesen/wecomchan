@@ -40,5 +40,5 @@ jobs:
             docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --output "type=image,push=true" \
-            --file ./go-wecomchan/Dockerfile . \
+            --file ./go-wecomchan/Dockerfile.architecture . \
             --tag $(echo "${DOCKER_USERNAME}" | tr '[:upper:]' '[:lower:]')/wecomchan:2023.02
