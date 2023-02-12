@@ -27,10 +27,18 @@ jobs:
         run: |
             echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin
       -
-        name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
+        name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
         with:
-          context: ./go-wecomchan
-          push: true
-          tags: huxuesen/wecomchan:latest
+            version: latest
+      -
+        name: Build dockerfile (with push)
+        env:
+            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+            docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --output "type=image,push=true" \
+            --file ./go-wecomchan . \
+            --tag $(echo "${DOCKER_USERNAME}" | tr '[:upper:]' '[:lower:]')/wecomchan:2023.02
