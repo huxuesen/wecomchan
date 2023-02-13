@@ -67,8 +67,14 @@ jobs:
           
           platforms: | 
 
+             linux/amd64 
 
              linux/arm64 
 
+             linux/arm/v7 
 
-          tags: huxuesen/wecomchan:arm64
+             linux/arm/v6 
+
+             linux/386
+             
+          tags: huxuesen/wecomchan:2023.02
